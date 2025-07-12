@@ -15,9 +15,7 @@ func main() {
 
 	ymlFile, _ := yaml.Extract("charlie.yml", nil)
 
-	ymlVal := ctx.BuildFile(ymlFile)
-
-	merged := schema.Unify(ymlVal)
+	merged := schema.Unify(ctx.BuildFile(ymlFile))
 
 	if err := merged.Validate(); err != nil {
 		log.Fatalf("Validation failed: %v", err)

@@ -2,10 +2,7 @@ module company.example/configuration
 
 go 1.24.5
 
-require (
-	cuelang.org/go v0.13.2
-	gopkg.in/yaml.v3 v3.0.1
-)
+require cuelang.org/go v0.13.2
 
 require (
 	cuelabs.dev/go/oci/ociregistry v0.0.0-20250304105642-27e071d2c9b1 // indirect
@@ -22,4 +19,5 @@ require (
 	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
