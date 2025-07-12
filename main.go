@@ -17,7 +17,9 @@ func main() {
 
 	merged := schema.Unify(ctx.BuildFile(ymlFile))
 
-	if err := merged.Validate(); err != nil {
+	err := merged.Validate();
+
+	if err != nil {
 		log.Fatalf("Validation failed: %v", err)
 	}
 }
