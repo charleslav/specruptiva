@@ -1,25 +1,25 @@
 package main
 
 import (
-	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/load"
-	"cuelang.org/go/encoding/yaml"
-	"log"
+	"os"
+	"fmt"
+  "disruptiva.org/specruptiva/pkg/core/service"
 )
 
 func main() {
-	ctx := cuecontext.New()
 
-	insts := load.Instances([]string{"pets.cue"}, nil)
-	schema := ctx.BuildInstance(insts[0])
-
-	ymlFile, _ := yaml.Extract("charlie.yml", nil)
-
-	merged := schema.Unify(ctx.BuildFile(ymlFile))
-
-	err := merged.Validate();
-
-	if err != nil {
-		log.Fatalf("Validation failed: %v", err)
+	if len(os.Args) < 3 {
+		fmt.Println("Erreur: il manque des arguments\n   spectruptiva SCHEMA_FILE DATA_FILE")
+		os.Exit(1)
 	}
+  
+  validator:=service.NewValidateService()
+
+	err:= validator.ValidateFromFiles(os.Args[1], os.Args[2])
+	if err !=nil {
+		fmt.Println(err)
+	}
+
+	
+
 }
