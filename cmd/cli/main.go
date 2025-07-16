@@ -18,6 +18,7 @@ func main() {
 	err:= validator.ValidateFromFiles(os.Args[1], os.Args[2])
 	if err !=nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	
