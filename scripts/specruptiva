@@ -1,0 +1,54 @@
+#! /bin/bash
+
+specruptiva()(
+
+  set -eu
+
+  _err(){
+      >&2 echo "$@"
+      exit 1
+    }  
+
+  _get_root(){
+      echo "$(readlink -f "$(dirname "$BASH_SOURCE")"/..)"
+    }
+
+
+  _help(){
+      cat <<-EOM
+  
+  NAME
+      specruptiva  -- outils de gestion centré sur les données
+
+  SYNOPSIS
+      specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
+                                                   #   est conforme au fichier schema
+EOM
+
+    }
+
+
+_validate(){
+    ROOT=$(_get_root)
+    go run $ROOT/cmd/cli/main.go ${@:-}
+  }
+
+case "${1:-}" in
+  "--help"|"")
+    _help
+    ;;
+  validate|vet)
+    _validate ${@:2}
+    ;;
+  *)
+    err "La commande '${1:-}' est inconnue"
+    ;;
+
+esac
+)
+
+
+
+[ "$0" != "$BASH_SOURCE" ] || specruptiva "$@"
+
+
