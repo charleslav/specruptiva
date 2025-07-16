@@ -1,4 +1,4 @@
-module company.example/configuration
+module disruptiva.org/specruptiva
 
 go 1.24.5
 
