@@ -4,7 +4,7 @@ import (
 	"os"
 	"fmt"
   "disruptiva.org/specruptiva/pkg/core/service"
-	"disruptiva.org/specruptiva/adapters/cli"
+	"disruptiva.org/specruptiva/adapters/cue"
 )
 
   var (
@@ -18,12 +18,12 @@ func main() {
 		os.Exit(1)
 	}
 
-  cliValidator:=cli.NewValidator()
-  validator:=service.NewValidateService(&cliValidator)
+  validator:=cue.NewValidator(cue.ValidateFromFile)
+  vs:=service.NewValidateService(validator)
 
-	validator.SetSchema(os.Args[1])
-	validator.SetData(os.Args[2])
-	err:= validator.Validate()
+	vs.SetSchema(os.Args[1])
+	vs.SetData(os.Args[2])
+	err:= vs.Validate()
 	if err !=nil {
 		fmt.Println(err)
 		os.Exit(1)
