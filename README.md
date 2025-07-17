@@ -20,6 +20,9 @@ specruptiva validate test/pets.cue test/charlie.yml
 # devrait réussir (status code 0)
 specruptiva validate test/pets.cue test/fido.yml
 
+# à partir de stdin
+cat test/fido.yml | specruptiva validate  test/pets.cue
+
 
 
 
