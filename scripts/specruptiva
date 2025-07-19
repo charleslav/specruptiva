@@ -46,10 +46,49 @@ EOM
     ROOT=$(_get_root)
     go run $ROOT/cmd/server/main.go
   }
+  _new_version() {
+    update_type=${1:-}
+    latest=$(git tag | grep -E "^v([0-9]+\.([0-9]+))\.([0-9]+)$" | sort -r | head -n 1 | sed 's/^v//g')
+    # lazy solution...
+    major=$(echo $latest | cut -d. -f1)
+    minor=$(echo $latest | cut -d. -f2)
+    patch=$(echo $latest | cut -d. -f3)
+
+    case "$update_type" in
+    major)
+      major=$((major + 1))
+      minor=0
+      patch=0
+      ;;
+    minor)
+      minor=$((minor + 1))
+      patch=0
+      ;;
+    patch)
+      patch=$((patch + 1))
+      ;;
+    *)
+      _err "type de release inconnu '$update_type'"
+      ;;
+    esac
+    echo "v$major.$minor.$patch"
+  }
+  _release() {
+    version=$(_new_version "$1")
+    # todo: check version is ok
+    # todo: check repo sanity ...
+    # todo: check description
+    git tag $version -m ${2}
+    # todo: checkout remote branch exists. if not push -u
+    git push
+  }
 
   case "${1:-}" in
   "--help" | "")
     _help
+    ;;
+  release)
+    _release "${@:2}"
     ;;
   validate | vet)
     _validate ${@:2}
