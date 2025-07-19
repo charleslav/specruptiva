@@ -4,6 +4,11 @@ specruptiva() (
 
   set -eu
 
+  if [ "$1" == "--debug" ]; then
+    set -x
+    shift 1
+  fi
+
   _err() {
     >&2 echo "$@"
     exit 1
@@ -20,6 +25,9 @@ specruptiva() (
       specruptiva  -- outils de gestion centré sur les données
 
   SYNOPSIS
+      # forme générale
+      specruptiva GLOBAL_OPTIONS COMMAND OPTIONS ARGS...
+
       # cli
       specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
                                                    #   est conforme au fichier schema
@@ -29,6 +37,11 @@ specruptiva() (
       specruptiva start-server
       specruptiva release (major|minor|patch) description
                                                   # incrémente la version et pousse sur le remote
+
+  GLOBAL_OPTIONS
+
+    --debug      # passe en mode debug (bash)
+
 EOM
 
   }
@@ -82,9 +95,9 @@ EOM
     # todo: check version is ok
     # todo: check repo sanity ...
     # todo: check description
-    git tag $version -m ${2}
+    git tag $version -m "${2}"
     # todo: checkout remote branch exists. if not push -u
-    git push
+    git push --tag
   }
 
   case "${1:-}" in
