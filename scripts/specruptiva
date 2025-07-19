@@ -20,11 +20,15 @@ specruptiva() (
       specruptiva  -- outils de gestion centré sur les données
 
   SYNOPSIS
+      # cli
       specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
                                                    #   est conforme au fichier schema
 
+      # devops
       specruptiva build-wasm 
       specruptiva start-server
+      specruptiva release (major|minor|patch) description
+                                                  # incrémente la version et pousse sur le remote
 EOM
 
   }
