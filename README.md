@@ -6,7 +6,7 @@ Disruption par la specification. Ou outils de gestion centré sur les données.
 
 ### CLI 
 
-````
+
 ```sh 
 # rend disponible la commande specruptiva
 export PATH=$PATH:$PWD/scripts
@@ -40,12 +40,12 @@ specruptiva release minor "Brève description du changement"
 
 ### API pour persister les schémas
 
-# Démarrer l'api
+#### Start API
 
 ```sh
 cd /cmd/api
 go run .
 ```
 
-# Documentation
-Voici le lien pour la documentation de l'api https://documenter.getpostman.com/view/16523457/2sB34kDyLS#89d5d5b6-f19b-4430-ae18-58c232a06381
+#### Documentation
+https://documenter.getpostman.com/view/16523457/2sB34kDyLS#89d5d5b6-f19b-4430-ae18-58c232a06381
