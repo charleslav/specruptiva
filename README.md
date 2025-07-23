@@ -6,7 +6,7 @@ Disruption par la specification. Ou outils de gestion centré sur les données.
 
 ### CLI 
 
-````
+
 ```sh 
 # rend disponible la commande specruptiva
 export PATH=$PATH:$PWD/scripts
@@ -37,3 +37,15 @@ cat test/fido.yml | specruptiva validate  test/pets.cue
 ```sh
 specruptiva release minor "Brève description du changement"
 ```
+
+### API pour persister les schémas
+
+#### Start API
+
+```sh
+cd /cmd/api
+go run .
+```
+
+#### Documentation
+https://documenter.getpostman.com/view/16523457/2sB34kDyLS#89d5d5b6-f19b-4430-ae18-58c232a06381
