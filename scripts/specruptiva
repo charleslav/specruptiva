@@ -28,13 +28,21 @@ specruptiva() (
       # forme générale
       specruptiva GLOBAL_OPTIONS COMMAND OPTIONS ARGS...
 
-      # cli
+      # cli 
       specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
-                                                   #   est conforme au fichier schema
+        
+      # cli sur api
+      specruptiva api-schema-list                        # affiche tous les schemas
+      specruptiva api-schema-create SCHEMA_FILE            # ajoute un schema à partir d'un fichier
+      specruptiva api-schema-read SCHEMA_ID               # affiche le schema avec id SCHEMA_ID
+      specruptiva api-schema-update SCHEMA_ID SCHEMA_FILE   # remplace le schema avec id SCHEMA_ID 
+                                                         #   par celui dans le fichier SCHEMA_FILE
+      specruptiva api-schema-delete SCHEMA_ID            # supprime le schema avec id SCHEMA_ID
 
       # devops
       specruptiva build-wasm 
-      specruptiva start-server
+      specruptiva start-web-server
+      specruptiva start-api
       specruptiva release (major|minor|patch) description
                                                   # incrémente la version et pousse sur le remote
 
@@ -58,11 +66,18 @@ EOM
     cp $(go env GOROOT)/lib/wasm/wasm_exec.js $ROOT/assets/.
   }
 
-  _startserver() {
+  _startwebserver() {
     _buildwasm
     ROOT=$(_get_root)
     go run $ROOT/cmd/server/main.go
   }
+
+  _startapi() {
+    _buildwasm
+    ROOT=$(_get_root)
+    go run $ROOT/cmd/api/main.go
+  }
+
   _new_version() {
     update_type=${1:-}
     latest=$(git tag | grep -E "^v([0-9]+\.([0-9]+))\.([0-9]+)$" | sort -r | head -n 1 | sed 's/^v//g')
@@ -113,8 +128,30 @@ EOM
   build-wasm)
     _buildwasm
     ;;
-  start-server)
-    _startserver
+  start-web-server)
+    _startwebserver
+    ;;
+  start-api)
+    _startapi
+    ;;
+  api-schema-list)
+    curl -X GET http://localhost:8080/api/v1/schemas | jq .
+    ;;
+  api-schema-read)
+    curl -X GET http://localhost:8080/api/v1/schemas/$2 | jq .
+    ;;
+  api-schema-create)
+    SCHEMA=$(cat $2)
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
+    curl --header 'Content-Type: application/json' -X POST http://localhost:8080/api/v1/schemas -d "$DATA"
+    ;;
+  api-schema-update)
+    SCHEMA=$(cat $3)
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
+    curl --header 'Content-Type: application/json' -X PUT http://localhost:8080/api/v1/schemas/$2 -d "$DATA"
+    ;;
+  api-schema-delete)
+    curl --header 'Content-Type: application/json' -X DELETE http://localhost:8080/api/v1/schemas/$2
     ;;
   *)
     _err "La commande '${1:-}' est inconnue"
