@@ -81,43 +81,31 @@ func (h *SchemaHandler) Read (c *gin.Context){
   if err !=nil {
     c.JSON(500,gin.H{"error": "Internal error while reading schemas"})
   }else if schema.Schema == "" {
-   c.JSON(404, gin.H{"error": "Schema not found"}) 
+    c.JSON(404, gin.H{"error": "Schema not found"}) 
 	}else{
-		 c.JSON(200,schema)
+		c.JSON(200,schema)
 	}
 }
 func (h *SchemaHandler) Update (c *gin.Context) {
-  c.JSON(200, gin.H{"state": "Not Implemented"})
+
+	id := c.Params.ByName("id")
+	var schema inputSchema
+	c.Bind(&schema)
 
 
-	//db := InitDb()
+  if schema.Schema == "" {
+		c.JSON(422, gin.H{"error": "Fields are empty"})
+    return
+	}
 
-//	defer db.Close()
-
-//	id := c.Params.ByName("id")
-//	var schema inputSchema
-//	db.First(&schema, id)
-
-//	if schema.Cuelang != "" {
-
-//		if schema.ID != 0 {
-//			var newSchema inputSchema
-//			c.Bind(&newSchema)
-//
-//			result := inputSchema{
-//				ID:      schema.ID,
-//				Cuelang: newSchema.Cuelang,
-//			}
-
-//			db.Save(&result)
-//			c.JSON(200, gin.H{"success": result})
-//		} else {
-//			c.JSON(404, gin.H{"error": "Schema not found"})
-//		}
-
-//	} else {
-//		c.JSON(422, gin.H{"error": "Fields are empty"})
-//	}
+	success, err:= h.service.Update(id, schema.Schema )
+	if err !=nil {
+    c.JSON(500,gin.H{"error": "Internal error while reading schemas"})
+  }else if success.Id == "" {
+    c.JSON(404, gin.H{"error": "Schema not found"}) 
+	}else{
+		c.JSON(200,success)
+	}
 }
 func (h *SchemaHandler) Delete (c *gin.Context) {
 

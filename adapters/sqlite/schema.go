@@ -118,7 +118,41 @@ func (s* SqliteStore)Read(id string)(domain.Schema, error){
 	return domain.Schema{}, nil
 }
 func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
-	return domain.Success{}, nil
+
+
+	 log.Println("update handler")
+	db := InitDb()
+	defer db.Close()
+
+	var gormSchema GormSchema
+	result:= db.First(&gormSchema, id)
+  if result.Error != nil {
+		return domain.Success{}, result.Error
+	}
+
+	if gormSchema.Id != 0 {
+
+		idi, err:= strconv.Atoi(id)
+		if err != nil {
+			return domain.Success{}, err
+		}
+		newGormSchema := GormSchema{
+			Id:     idi, 
+			Schema: schema,
+		}
+
+		result:= db.Save(&newGormSchema)
+    if result.Error != nil {
+		  return domain.Success{}, result.Error
+  	}
+		  return domain.Success{
+				Id: id,
+				Message: "schema updated",
+			}, nil
+		} else {
+			return domain.Success{}, nil // todo: comportement ambigue... revoir ça
+		}
+
 }
 func (s* SqliteStore)Delete(id string)(domain.Success, error){
 	return domain.Success{}, nil
