@@ -14,6 +14,10 @@ specruptiva() (
     exit 1
   }
 
+  if [ "${SPECRUPTIVA_API_PORT:-}" = "" ]; then
+    export SPECRUPTIVA_API_PORT=9000
+  fi
+
   _get_root() {
     echo "$(readlink -f "$(dirname "$BASH_SOURCE")"/..)"
   }
@@ -135,23 +139,23 @@ EOM
     _startapi
     ;;
   api-schema-list)
-    curl -X GET http://localhost:8080/api/v1/schemas | jq .
+    curl -s -X GET http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas | jq .
     ;;
   api-schema-read)
-    curl -X GET http://localhost:8080/api/v1/schemas/$2 | jq .
+    curl -s -X GET http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2 | jq .
     ;;
   api-schema-create)
     SCHEMA=$(cat $2)
     DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
-    curl --header 'Content-Type: application/json' -X POST http://localhost:8080/api/v1/schemas -d "$DATA"
+    curl -s --header 'Content-Type: application/json' -X POST http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas -d "$DATA"
     ;;
   api-schema-update)
     SCHEMA=$(cat $3)
     DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
-    curl --header 'Content-Type: application/json' -X PUT http://localhost:8080/api/v1/schemas/$2 -d "$DATA"
+    curl -s --header 'Content-Type: application/json' -X PUT http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2 -d "$DATA"
     ;;
   api-schema-delete)
-    curl --header 'Content-Type: application/json' -X DELETE http://localhost:8080/api/v1/schemas/$2
+    curl -s --header 'Content-Type: application/json' -X DELETE http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2
     ;;
   *)
     _err "La commande '${1:-}' est inconnue"

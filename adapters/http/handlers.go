@@ -1,10 +1,48 @@
-package main
+package http
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
+	"disruptiva.org/specruptiva/pkg/core/service"
+  "github.com/gin-gonic/gin"
+  "github.com/jinzhu/gorm"
+  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func PostSchema(c *gin.Context) {
+func InitDb() *gorm.DB {
+	// Openning file
+	db, err := gorm.Open("sqlite3", "./data.db")
+	// Display SQL queries
+	db.LogMode(true)
+
+	// Error
+	if err != nil {
+		panic(err)
+	}
+	// Creating the table
+	if !db.HasTable(&CueSchema{}) {
+		db.CreateTable(&CueSchema{})
+		db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&CueSchema{})
+	}
+
+	return db
+}
+
+// todo: supprimer CueSchema
+type CueSchema struct {
+	ID      int    `gorm:"AUTO_INCREMENT" form:"id" json:"id"`
+	Cuelang string `gorm:"not null" form:"Cuelang" json:"Cuelang"`
+}
+
+type SchemaHandler struct {
+	service service.SchemaService
+}
+
+func NewSchemaHandler(service service.SchemaService) (*SchemaHandler) {
+	return &SchemaHandler{ service: service }
+}
+
+func (h *SchemaHandler) Create (c *gin.Context) {
+	log.Println("Create handler")
 	db := InitDb()
 	defer db.Close()
 
@@ -18,11 +56,8 @@ func PostSchema(c *gin.Context) {
 	} else {
 		c.JSON(422, gin.H{"error": "Fields are empty"})
 	}
-
 }
-
-func GetSchemas(c *gin.Context) {
-
+func (h *SchemaHandler) List (c *gin.Context) {
 	db := InitDb()
 
 	defer db.Close()
@@ -32,8 +67,8 @@ func GetSchemas(c *gin.Context) {
 
 	c.JSON(200, schema)
 }
+func (h *SchemaHandler) Read (c *gin.Context){
 
-func GetSchema(c *gin.Context) {
 
 	db := InitDb()
 
@@ -50,8 +85,8 @@ func GetSchema(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "Schema not found"})
 	}
 }
+func (h *SchemaHandler) Update (c *gin.Context) {
 
-func UpdateSchema(c *gin.Context) {
 
 	db := InitDb()
 
@@ -82,8 +117,8 @@ func UpdateSchema(c *gin.Context) {
 		c.JSON(422, gin.H{"error": "Fields are empty"})
 	}
 }
+func (h *SchemaHandler) Delete (c *gin.Context) {
 
-func DeleteSchema(c *gin.Context) {
 
 	db := InitDb()
 
@@ -106,8 +141,3 @@ func DeleteSchema(c *gin.Context) {
 
 }
 
-func OptionsSchema(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "DELETE,POST, PUT")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	c.Next()
-}
