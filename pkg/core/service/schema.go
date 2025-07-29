@@ -35,5 +35,5 @@ func(s *SchemaService) Update(id string, schema string) (domain.Success, error) 
   return s.store.Update(id, schema)
 }
 func(s *SchemaService) Delete(id string) (domain.Success, error) {
-  return domain.Success{}, nil
+  return s.store.Delete(id)
 }

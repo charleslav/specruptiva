@@ -2,7 +2,6 @@ package sqlite
 
 import ( 
 	"strconv"
-	"log"
 	"errors"
 	"disruptiva.org/specruptiva/pkg/core/port"
 	"disruptiva.org/specruptiva/pkg/core/domain"
@@ -42,21 +41,6 @@ func NewSchemaStore (dbfile string ) ports.SchemaStore {
 	return &SqliteStore{dbfile: dbfile}
 }
 
-//func (s *SqliteStore) Init() error {
-//	db, err:= gorm.Open("sqlite3", s.dbfile)
-//	s.db=db
-//	s.db.LogMode(true) // todo: pass sqlite/gorm options
-//	if err != nil {
-//		return err
-//	}
-
-//	if !db.HasTable(&GormSchema{}){
-//		s.db.CreateTable(&GormSchema{})
-//		s.db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&GormSchema{})
-//	}
-//  return nil
-//}
-
 func (s* SqliteStore)List()(domain.Schemas, error){
 
 	db := InitDb()
@@ -81,7 +65,6 @@ func (s* SqliteStore)List()(domain.Schemas, error){
 
 func (s* SqliteStore)Create(schema string)(domain.Success, error){
 
-	log.Println("create SQLITE Adapter")
 	db := InitDb()
 	defer db.Close()
 
@@ -89,7 +72,6 @@ func (s* SqliteStore)Create(schema string)(domain.Success, error){
 	if schema != "" {
 		gormSchema:= GormSchema{Schema: schema,}
 		result:= db.Create(&gormSchema)
-		log.Println(gormSchema)
     if result.Error != nil {
 			return domain.Success{}, result.Error
 		}
@@ -119,8 +101,6 @@ func (s* SqliteStore)Read(id string)(domain.Schema, error){
 }
 func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
 
-
-	 log.Println("update handler")
 	db := InitDb()
 	defer db.Close()
 
@@ -155,5 +135,23 @@ func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
 
 }
 func (s* SqliteStore)Delete(id string)(domain.Success, error){
+	db := InitDb()
+	defer db.Close()
+
+	var schema GormSchema
+	result := db.First(&schema, id)
+  if result.Error != nil {
+		return domain.Success{}, nil // todo: retourner ce message (result.Error.Error())
+ 	}
+	if schema.Id != 0 {  
+		result:= db.Delete(&schema) 
+    if result.Error != nil {
+	    return domain.Success{}, result.Error
+ 	  }
+		return domain.Success{
+			Id: strconv.Itoa(schema.Id),
+			Message: "schema deleted",
+		},nil
+	}
 	return domain.Success{}, nil
 }
