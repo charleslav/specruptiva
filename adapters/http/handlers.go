@@ -66,15 +66,8 @@ func (h *SchemaHandler) List (c *gin.Context) {
 	 }else{
 		 c.JSON(200,schemas)
 	 }
-
-
-//	defer db.Close()
-
-//	var schema []inputSchema
-//	db.Find(&schema)
-
-//c.JSON(200, gin.H{"state": "Not Implemented"})
 }
+
 func (h *SchemaHandler) Read (c *gin.Context){
 
 
@@ -82,17 +75,16 @@ func (h *SchemaHandler) Read (c *gin.Context){
 
 //	defer db.Close()
 
-//	id := c.Params.ByName("id")
-	//var schema inputSchema
-
-	//db.First(&schema, id)
-
-//	if schema.ID != 0 {
-//		c.JSON(200, schema)
-//	} else {
-//		c.JSON(404, gin.H{"error": "Schema not found"})
-//	}
-c.JSON(200, gin.H{"state": "Not Implemented"})
+	id := c.Params.ByName("id")
+	
+	schema, err:= h.service.Read(id)
+  if err !=nil {
+    c.JSON(500,gin.H{"error": "Internal error while reading schemas"})
+  }else if schema.Schema == "" {
+   c.JSON(404, gin.H{"error": "Schema not found"}) 
+	}else{
+		 c.JSON(200,schema)
+	}
 }
 func (h *SchemaHandler) Update (c *gin.Context) {
   c.JSON(200, gin.H{"state": "Not Implemented"})

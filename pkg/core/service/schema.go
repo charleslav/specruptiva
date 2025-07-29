@@ -29,7 +29,7 @@ func(s *SchemaService) Create(schema string) (domain.Success, error) {
   return s.store.Create(schema)
 }
 func(s *SchemaService) Read(id string) (domain.Schema, error) { 
-	return domain.Schema{}, nil
+	return s.store.Read(id)
 }
 func(s *SchemaService) Update(id string, schema string) (domain.Success, error) { 
   return domain.Success{}, nil

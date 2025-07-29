@@ -92,39 +92,29 @@ func (s* SqliteStore)Create(schema string)(domain.Success, error){
 		log.Println(gormSchema)
     if result.Error != nil {
 			return domain.Success{}, result.Error
-		}else{
-			return domain.Success{
-				Id:  strconv.Itoa(gormSchema.Id),
-				Message: "schema created",
-			}, nil
 		}
-		
-	} else {
-		 return domain.Success{}, errors.New("Fields are empty")
-	}
-   //s.Init()
-
-	 //var gormSchema= GormSchema{Schema: schema}
-
-//	 if gormSchema.Schema != "" {
-//		 result:= s.db.Create(&gormSchema)
- //    if result.Error != nil {
-//			 return domain.Success{}, result.Error
-//		 }
-
-//		 return domain.Success{
-	//		 Id: string(gormSchema.Id),
-		//	 Message: "created with success",
-		// }, nil
-
-//	 }else{ 
-//		 return domain.Success{}, errors.New("(create) Fields are empty")
-		 return domain.Success{}, errors.New("Not Implemented")
-	// }
-
+		return domain.Success{
+			Id:  strconv.Itoa(gormSchema.Id),
+			Message: "schema created",
+		  }, nil
+		}
+	return domain.Success{}, errors.New("Fields are empty")
 }
 
 func (s* SqliteStore)Read(id string)(domain.Schema, error){
+  db := InitDb()
+	defer db.Close()
+
+	var schema GormSchema
+
+	db.First(&schema, id)
+
+	if schema.Id != 0 {
+		return domain.Schema{
+			Id:  strconv.Itoa(schema.Id),
+			Schema: schema.Schema,
+		}, nil
+	}
 	return domain.Schema{}, nil
 }
 func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
