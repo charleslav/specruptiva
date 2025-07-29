@@ -6,6 +6,7 @@ import (
 	"disruptiva.org/specruptiva/pkg/core/port"
 	"disruptiva.org/specruptiva/pkg/core/domain"
   "github.com/jinzhu/gorm"
+  _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func InitDb() *gorm.DB {

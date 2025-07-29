@@ -60,4 +60,10 @@ specruptiva api-schema-delete 1
 specruptiva release minor "Brève description du changement"
 ```
 
+### Test
 
+```sh
+. setup
+# test l'api rest
+specruptiva test-api
+```
