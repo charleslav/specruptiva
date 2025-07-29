@@ -1,8 +1,10 @@
 package http
 
 import (
+
 	"log"
 	"disruptiva.org/specruptiva/pkg/core/service"
+//	"disruptiva.org/specruptiva/pkg/core/port"
   "github.com/gin-gonic/gin"
   "github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -19,18 +21,17 @@ func InitDb() *gorm.DB {
 		panic(err)
 	}
 	// Creating the table
-	if !db.HasTable(&CueSchema{}) {
-		db.CreateTable(&CueSchema{})
-		db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&CueSchema{})
+	if !db.HasTable(&inputSchema{}) {
+		db.CreateTable(&inputSchema{})
+		db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&inputSchema{})
 	}
 
 	return db
 }
 
 // todo: supprimer CueSchema
-type CueSchema struct {
-	ID      int    `gorm:"AUTO_INCREMENT" form:"id" json:"id"`
-	Cuelang string `gorm:"not null" form:"Cuelang" json:"Cuelang"`
+type inputSchema struct {
+	Schema string `form:"schema" json:"schema"`
 }
 
 type SchemaHandler struct {
@@ -42,102 +43,112 @@ func NewSchemaHandler(service service.SchemaService) (*SchemaHandler) {
 }
 
 func (h *SchemaHandler) Create (c *gin.Context) {
-	log.Println("Create handler")
-	db := InitDb()
-	defer db.Close()
 
-	var cuelangSchema CueSchema
-	c.Bind(&cuelangSchema)
+	var inSchema inputSchema
+	c.Bind(&inSchema)
 
-	if cuelangSchema.Cuelang != "" {
-		db.Create(&cuelangSchema)
+  log.Println(inSchema.Schema)
 
-		c.JSON(201, gin.H{"success": cuelangSchema})
+	success, err:=h.service.Create(inSchema.Schema)
+
+
+	if err == nil {
+
+		c.JSON(201, success)
 	} else {
-		c.JSON(422, gin.H{"error": "Fields are empty"})
+		c.JSON(422, gin.H{"error": err.Error()})
 	}
 }
 func (h *SchemaHandler) List (c *gin.Context) {
-	db := InitDb()
+   schemas, err:= h.service.List()
+	 if err !=nil {
+		 c.JSON(500,gin.H{"error": "Internal error while listing schemas"})
+	 }else{
+		 c.JSON(200,schemas)
+	 }
 
-	defer db.Close()
 
-	var schema []CueSchema
-	db.Find(&schema)
+//	defer db.Close()
 
-	c.JSON(200, schema)
+//	var schema []inputSchema
+//	db.Find(&schema)
+
+//c.JSON(200, gin.H{"state": "Not Implemented"})
 }
 func (h *SchemaHandler) Read (c *gin.Context){
 
 
-	db := InitDb()
+//	db := InitDb()
 
-	defer db.Close()
+//	defer db.Close()
 
-	id := c.Params.ByName("id")
-	var schema CueSchema
+//	id := c.Params.ByName("id")
+	//var schema inputSchema
 
-	db.First(&schema, id)
+	//db.First(&schema, id)
 
-	if schema.ID != 0 {
-		c.JSON(200, schema)
-	} else {
-		c.JSON(404, gin.H{"error": "Schema not found"})
-	}
+//	if schema.ID != 0 {
+//		c.JSON(200, schema)
+//	} else {
+//		c.JSON(404, gin.H{"error": "Schema not found"})
+//	}
+c.JSON(200, gin.H{"state": "Not Implemented"})
 }
 func (h *SchemaHandler) Update (c *gin.Context) {
+  c.JSON(200, gin.H{"state": "Not Implemented"})
 
 
-	db := InitDb()
+	//db := InitDb()
 
-	defer db.Close()
+//	defer db.Close()
 
-	id := c.Params.ByName("id")
-	var schema CueSchema
-	db.First(&schema, id)
+//	id := c.Params.ByName("id")
+//	var schema inputSchema
+//	db.First(&schema, id)
 
-	if schema.Cuelang != "" {
+//	if schema.Cuelang != "" {
 
-		if schema.ID != 0 {
-			var newSchema CueSchema
-			c.Bind(&newSchema)
+//		if schema.ID != 0 {
+//			var newSchema inputSchema
+//			c.Bind(&newSchema)
+//
+//			result := inputSchema{
+//				ID:      schema.ID,
+//				Cuelang: newSchema.Cuelang,
+//			}
 
-			result := CueSchema{
-				ID:      schema.ID,
-				Cuelang: newSchema.Cuelang,
-			}
+//			db.Save(&result)
+//			c.JSON(200, gin.H{"success": result})
+//		} else {
+//			c.JSON(404, gin.H{"error": "Schema not found"})
+//		}
 
-			db.Save(&result)
-			c.JSON(200, gin.H{"success": result})
-		} else {
-			c.JSON(404, gin.H{"error": "Schema not found"})
-		}
-
-	} else {
-		c.JSON(422, gin.H{"error": "Fields are empty"})
-	}
+//	} else {
+//		c.JSON(422, gin.H{"error": "Fields are empty"})
+//	}
 }
 func (h *SchemaHandler) Delete (c *gin.Context) {
 
+  c.JSON(200, gin.H{"state": "Not Implemented"})
 
-	db := InitDb()
+//	db := InitDb()
 
-	defer db.Close()
+//	defer db.Close()
 
-	id := c.Params.ByName("id")
-	var schema CueSchema
+//	id := c.Params.ByName("id")
+//	var schema CueSchema
 
-	db.First(&schema, id)
+//	db.First(&schema, id)
 
-	if schema.ID != 0 {
+//	if schema.ID != 0 {
 
-		db.Delete(&schema)
+//		db.Delete(&schema)
 
-		c.JSON(200, gin.H{"success": "Schema #" + id + " deleted"})
-	} else {
+//		c.JSON(200, gin.H{"success": "Schema #" + id + " deleted"})
+//	} else {
 
-		c.JSON(404, gin.H{"error": "Schema not found"})
-	}
+	//	c.JSON(404, gin.H{"error": "Schema not found"})
+//	}
 
 }
 

@@ -1,11 +1,32 @@
 package sqlite
 
-import (
+import ( 
+	"strconv"
+	"log"
 	"errors"
 	"disruptiva.org/specruptiva/pkg/core/port"
 	"disruptiva.org/specruptiva/pkg/core/domain"
   "github.com/jinzhu/gorm"
 )
+
+func InitDb() *gorm.DB {
+	// Openning file
+	db, err := gorm.Open("sqlite3", "./data.db")
+	// Display SQL queries
+	db.LogMode(true)
+
+	// Error
+	if err != nil {
+		panic(err)
+	}
+	// Creating the table
+	if !db.HasTable(&GormSchema{}) {
+		db.CreateTable(&GormSchema{})
+		db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&GormSchema{})
+	}
+
+	return db
+}
 
 type GormSchema struct {
 	Id  int  `gorm:"AUTO_INCREMENT" form:"id" json:"id"`
@@ -21,45 +42,86 @@ func NewSchemaStore (dbfile string ) ports.SchemaStore {
 	return &SqliteStore{dbfile: dbfile}
 }
 
-func (s *SqliteStore) Init() error {
-	db, err:= gorm.Open("sqlite3", s.dbfile)
-	s.db=db
-	s.db.LogMode(true) // todo: pass sqlite/gorm options
-	if err != nil {
-		return err
-	}
+//func (s *SqliteStore) Init() error {
+//	db, err:= gorm.Open("sqlite3", s.dbfile)
+//	s.db=db
+//	s.db.LogMode(true) // todo: pass sqlite/gorm options
+//	if err != nil {
+//		return err
+//	}
 
-	if !db.HasTable(&GormSchema{}){
-		s.db.CreateTable(&GormSchema{})
-		s.db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&GormSchema{})
-	}
-  return nil
-}
+//	if !db.HasTable(&GormSchema{}){
+//		s.db.CreateTable(&GormSchema{})
+//		s.db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&GormSchema{})
+//	}
+//  return nil
+//}
 
 func (s* SqliteStore)List()(domain.Schemas, error){
 
-	return nil, nil
+	db := InitDb()
+
+	defer db.Close()
+
+	var schemas []GormSchema
+	db.Find(&schemas)
+
+	var outschema = domain.Schemas{}
+
+	// casting ...
+	for _, value := range schemas {
+		outschema = append(outschema, domain.Schema{
+			Id: strconv.Itoa(value.Id),
+		  Schema: value.Schema,
+		})
+	}
+
+	return outschema, nil
 }
 
 func (s* SqliteStore)Create(schema string)(domain.Success, error){
-   s.Init()
 
-	 var gormSchema= GormSchema{Schema: schema}
+	log.Println("create SQLITE Adapter")
+	db := InitDb()
+	defer db.Close()
 
-	 if gormSchema.Schema != "" {
-		 result:= s.db.Create(&gormSchema)
-     if result.Error != nil {
-			 return domain.Success{}, result.Error
-		 }
 
-		 return domain.Success{
-			 Id: string(gormSchema.Id),
-			 Message: "created with success",
-		 }, nil
+	if schema != "" {
+		gormSchema:= GormSchema{Schema: schema,}
+		result:= db.Create(&gormSchema)
+		log.Println(gormSchema)
+    if result.Error != nil {
+			return domain.Success{}, result.Error
+		}else{
+			return domain.Success{
+				Id:  strconv.Itoa(gormSchema.Id),
+				Message: "schema created",
+			}, nil
+		}
+		
+	} else {
+		 return domain.Success{}, errors.New("Fields are empty")
+	}
+   //s.Init()
 
-	 }else{ 
-		 return domain.Success{}, errors.New("(create) Fields are empty")
-	 }
+	 //var gormSchema= GormSchema{Schema: schema}
+
+//	 if gormSchema.Schema != "" {
+//		 result:= s.db.Create(&gormSchema)
+ //    if result.Error != nil {
+//			 return domain.Success{}, result.Error
+//		 }
+
+//		 return domain.Success{
+	//		 Id: string(gormSchema.Id),
+		//	 Message: "created with success",
+		// }, nil
+
+//	 }else{ 
+//		 return domain.Success{}, errors.New("(create) Fields are empty")
+		 return domain.Success{}, errors.New("Not Implemented")
+	// }
+
 }
 
 func (s* SqliteStore)Read(id string)(domain.Schema, error){

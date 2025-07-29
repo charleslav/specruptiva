@@ -146,12 +146,12 @@ EOM
     ;;
   api-schema-create)
     SCHEMA=$(cat $2)
-    DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "schema": $schema }')
     curl -s --header 'Content-Type: application/json' -X POST http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas -d "$DATA"
     ;;
   api-schema-update)
     SCHEMA=$(cat $3)
-    DATA=$(jq -n --arg schema "$SCHEMA" '{ "cuelang": $schema }')
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "schema": $schema }')
     curl -s --header 'Content-Type: application/json' -X PUT http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2 -d "$DATA"
     ;;
   api-schema-delete)
