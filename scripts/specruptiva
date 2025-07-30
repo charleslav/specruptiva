@@ -33,7 +33,7 @@ specruptiva() (
       specruptiva GLOBAL_OPTIONS COMMAND OPTIONS ARGS...
 
       # cli 
-      specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
+      specruptiva cli validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
         
       # cli sur api
       specruptiva api-schema-list                        # affiche tous les schemas
@@ -58,7 +58,7 @@ EOM
 
   }
 
-  _validate() {
+  _cli() {
     ROOT=$(_get_root)
     go run $ROOT/cmd/cli/main.go ${@:-}
   }
@@ -126,8 +126,8 @@ EOM
   release)
     _release "${@:2}"
     ;;
-  validate | vet)
-    _validate ${@:2}
+  cli)
+    _cli ${@:2}
     ;;
   dev-clean)
 
