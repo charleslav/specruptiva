@@ -215,8 +215,34 @@ schemaDeleteCmd := &cobra.Command{
       fmt.Print(string(output))
     },
 }
-
-schemaCmd.AddCommand(schemaCreateCmd,schemaUpdateCmd,schemaListCmd, schemaDeleteCmd)
+schemaReadCmd := &cobra.Command{
+    Use: "read",
+    Short: "Afficher un schema existant",
+    Run: func(cmd *cobra.Command, args []string) {
+	    if len(args) != 1 { 
+		    fmt.Println("Erreur: mauvais nombre d'arguments\n   spectruptiva schema read SCHEMA_ID")
+		    os.Exit(1)
+      }
+    	result, err:= schemaService.Read(args[0])
+	    if err !=nil {
+	     fmt.Println(err)
+	     os.Exit(1)
+  	  }
+  	  output, err := json.MarshalIndent(result, "", "  ")
+      if err != nil {
+        fmt.Println(err)
+		    os.Exit(1)
+      }
+      fmt.Print(string(output))
+    },
+}
+schemaCmd.AddCommand(
+	 schemaCreateCmd,
+	 schemaUpdateCmd,
+	 schemaListCmd, 
+	 schemaDeleteCmd,
+	 schemaReadCmd,
+ )
 rootCmd.AddCommand(validateCmd, schemaCmd)
 
 }
