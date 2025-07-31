@@ -49,11 +49,14 @@ specruptiva api-schema-update 1 test/pets_v2.cue
 
 # supprime un schema
 specruptiva api-schema-delete 1
-
-# teste l'api
-specruptiva test-api
 ```
 
+## Tests
+
+```sh
+specruptiva test-api
+specruptiva test-cli
+```
 
 ## DevOps actions
 

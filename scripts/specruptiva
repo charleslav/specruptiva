@@ -162,8 +162,18 @@ EOM
     specruptiva api-schema-delete 1
     ps aux | grep start-api | grep -v grep | awk '{ print $2 }' | xargs -I % kill -9 %
     specruptiva dev-clean
-
     ;;
+  test-cli)
+    ROOT=$(_get_root)
+    specruptiva dev-clean
+    specruptiva cli schema create $ROOT/test/pets.cue
+    specruptiva cli schema list
+    specruptiva cli schema read 1
+    specruptiva cli schema update 1 $ROOT/test/pets_v2.cue
+    specruptiva cli schema delete 1
+    specruptiva dev-clean
+    ;;
+
   api-schema-list)
     curl -s -X GET http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas | jq .
     ;;
