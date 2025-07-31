@@ -9,11 +9,17 @@ import (
   _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-func InitDb() *gorm.DB {
+type SqliteConfig struct {
+	LogMode bool
+	DbFile string
+}
+
+
+func InitDb(config SqliteConfig) *gorm.DB {
 	// Openning file
-	db, err := gorm.Open("sqlite3", "./data.db")
+	db, err := gorm.Open("sqlite3", config.DbFile)
 	// Display SQL queries
-	db.LogMode(true)
+	db.LogMode(config.LogMode)
 
 	// Error
 	if err != nil {
@@ -34,17 +40,17 @@ type GormSchema struct {
 }
 
 type SqliteStore struct {
-	dbfile string
 	db *gorm.DB
+	config SqliteConfig
 }
 
-func NewSchemaStore (dbfile string ) ports.SchemaStore {
-	return &SqliteStore{dbfile: dbfile}
+func NewSchemaStore (config SqliteConfig) ports.SchemaStore {
+	return &SqliteStore{config: config}
 }
 
 func (s* SqliteStore)List()(domain.Schemas, error){
 
-	db := InitDb()
+	db := InitDb(s.config)
 
 	defer db.Close()
 
@@ -66,7 +72,7 @@ func (s* SqliteStore)List()(domain.Schemas, error){
 
 func (s* SqliteStore)Create(schema string)(domain.Success, error){
 
-	db := InitDb()
+	db := InitDb(s.config)
 	defer db.Close()
 
 
@@ -85,7 +91,7 @@ func (s* SqliteStore)Create(schema string)(domain.Success, error){
 }
 
 func (s* SqliteStore)Read(id string)(domain.Schema, error){
-  db := InitDb()
+  db := InitDb(s.config)
 	defer db.Close()
 
 	var schema GormSchema
@@ -102,7 +108,7 @@ func (s* SqliteStore)Read(id string)(domain.Schema, error){
 }
 func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
 
-	db := InitDb()
+	db := InitDb(s.config)
 	defer db.Close()
 
 	var gormSchema GormSchema
@@ -136,7 +142,7 @@ func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
 
 }
 func (s* SqliteStore)Delete(id string)(domain.Success, error){
-	db := InitDb()
+	db := InitDb(s.config)
 	defer db.Close()
 
 	var schema GormSchema

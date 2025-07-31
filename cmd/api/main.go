@@ -17,10 +17,13 @@ func Cors() gin.HandlerFunc {
 
 func main() {
 
-  var dbfile = "./data.db" // todo: retrieve from env var
+  var config = sqlite.SqliteConfig{
+		DbFile: "./data.db",   // todo: retrieve from env var
+		LogMode: true,
+	 }
   var port = "9000"        // todo: retrieve from env var
 
-	var schemaStore = sqlite.NewSchemaStore(dbfile)
+	var schemaStore = sqlite.NewSchemaStore(config)
 	var schemaService = service.NewSchemaService(schemaStore)
 	var schemaHandler = http.NewSchemaHandler(*schemaService)
 
