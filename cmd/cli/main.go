@@ -4,9 +4,11 @@ import (
 	"os"
 	"fmt"
 	"io"
+	"encoding/json"
 	"github.com/spf13/cobra"
   "disruptiva.org/specruptiva/pkg/core/service"
 	"disruptiva.org/specruptiva/adapters/cue"
+  "disruptiva.org/specruptiva/adapters/sqlite"
 
 )
 
@@ -23,10 +25,23 @@ func Execute() {
 	}
 }
 
+var (
+	SPECRUPTIVA_DB_FILE string
+	sqliteConfig sqlite.SqliteConfig
+)
+
 func init() {
 
+  SPECRUPTIVA_DB_FILE = "./data.db"
 
-versionCmd := &cobra.Command{
+	sqliteConfig = sqlite.SqliteConfig{
+		DbFile: SPECRUPTIVA_DB_FILE,
+		LogMode: false,
+	}
+  var schemaStore = sqlite.NewSchemaStore(sqliteConfig)
+	var schemaService = service.NewSchemaService(schemaStore)
+
+  validateCmd := &cobra.Command{
     Use: "validate",
     Short: "Vérifie qu'une donnée (yaml) est conforme à un schema (cue)",
     Run: func(cmd *cobra.Command, args []string) {
@@ -74,15 +89,67 @@ versionCmd := &cobra.Command{
     },
 }
 
-sayHelloCmd := &cobra.Command{
-    Use: "sayhello",
-    Short: "Say Hello",
+
+schemaCmd := &cobra.Command{
+    Use: "schema",
+    Short: "Gère les schemas (cue)",
+}
+
+schemaCreateCmd := &cobra.Command{
+    Use: "create",
+    Short: "Crée un nouveau schema",
     Run: func(cmd *cobra.Command, args []string) {
-        
+	    var (
+		    schema string
+	    )
+	    if len(args) == 0 { 
+	      stdin, err := io.ReadAll(os.Stdin)
+  	    if err != nil {
+	  	    fmt.Println(err)
+					os.Exit(1)
+  	    }
+		    schema=string(stdin)
+
+				success, err:= schemaService.Create(schema)
+	      if err !=nil {
+	  	    fmt.Println(err)
+	  	    os.Exit(1)
+  	    }
+			  output, err := json.MarshalIndent(success, "", "  ")
+        if err != nil {
+          fmt.Println(err)
+	  	    os.Exit(1)
+        }
+        fmt.Print(string(output))
+		 
+      }else if len(args) == 1 {
+		    buf, err:=os.ReadFile(args[0])
+        if err != nil {
+          fmt.Println(err)
+	  	    os.Exit(1)
+        }
+	    	schema=string(buf)
+ 				success, err:= schemaService.Create(schema)
+	      if err !=nil {
+	  	    fmt.Println(err)
+	  	    os.Exit(1)
+  	    }
+			  output, err := json.MarshalIndent(success, "", "  ")
+        if err != nil {
+          fmt.Println(err)
+	  	    os.Exit(1)
+        }
+        fmt.Print(string(output))
+   
+      	} else {
+		    fmt.Println("Erreur: il y a trop d'arguments\n   spectruptiva schemat create [SCHEMA_FILE]")
+		    os.Exit(1)
+    	}
     },
 }
 
-rootCmd.AddCommand(versionCmd, sayHelloCmd)
+schemaCmd.AddCommand(schemaCreateCmd)
+rootCmd.AddCommand(validateCmd, schemaCmd)
 
 //	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
