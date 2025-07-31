@@ -33,15 +33,23 @@ specruptiva() (
       specruptiva GLOBAL_OPTIONS COMMAND OPTIONS ARGS...
 
       # cli 
-      specruptiva cli validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
-        
-      # cli sur api
+      specruptiva cli validate SCHEMA_FILE [DATA_FILE] # valide que le fichier de données
+      specruptiva cli list                             # affiche tous les schemas
+      specruptiva cli create SCHEMA_FILE               # ajoute un schema à partir d'un fichier
+      specruptiva cli read SCHEMA_ID                   # affiche le schema avec id SCHEMA_ID
+      specruptiva cli update SCHEMA_ID [DATA_FILE]     # remplace le schema avec id SCHEMA_ID 
+                                                       #   par celui dans le fichier SCHEMA_FILE
+      specruptiva api-schema-delete SCHEMA_ID          # supprime le schema avec id SCHEMA_ID
+
+
+      # (pseudo)cli sur api
       specruptiva api-schema-list                        # affiche tous les schemas
       specruptiva api-schema-create SCHEMA_FILE            # ajoute un schema à partir d'un fichier
       specruptiva api-schema-read SCHEMA_ID               # affiche le schema avec id SCHEMA_ID
       specruptiva api-schema-update SCHEMA_ID SCHEMA_FILE   # remplace le schema avec id SCHEMA_ID 
                                                          #   par celui dans le fichier SCHEMA_FILE
       specruptiva api-schema-delete SCHEMA_ID            # supprime le schema avec id SCHEMA_ID
+
 
       # devops
       specruptiva build-wasm 

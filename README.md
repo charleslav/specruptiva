@@ -2,33 +2,37 @@
 
 Disruption par la specification. Ou outils de gestion centré sur les données.
 
-## Usage
+## Usage (développement)
+
+Pour afficher toutes les commandes de développement disponibles:
+
+```sh
+. setup  # rend les commandes specruptiva disponibles
+specruptiva --help
+```
+
+
 
 ### CLI 
 
 ```sh 
-# rend disponible la commande specruptiva
-export PATH=$PATH:$PWD/scripts
-
 # affiche l'aide
 specruptiva --help
 
 # devrait échouer (status code 1)
-specruptiva validate test/pets.cue test/charlie.yml
+specruptiva cli validate test/pets.cue test/charlie.yml
 
 # devrait réussir (status code 0)
-specruptiva validate test/pets.cue test/fido.yml
+specruptiva cli validate test/pets.cue test/fido.yml
 
 # à partir de stdin
-cat test/fido.yml | specruptiva validate  test/pets.cue
+cat test/fido.yml | specruptiva cli validate  test/pets.cue
 ```
 
 ### API pour persister les schémas
 
 ```sh
 # Start API
-go run cmd/api/main.go
-# ou bien
 specruptiva start-api
 
 # créer schema
@@ -45,7 +49,11 @@ specruptiva api-schema-update 1 test/pets_v2.cue
 
 # supprime un schema
 specruptiva api-schema-delete 1
+
+# teste l'api
+specruptiva test-api
 ```
+
 
 ## DevOps actions
 
