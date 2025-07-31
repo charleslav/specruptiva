@@ -1,5 +1,5 @@
 package main
-
+// todo: utiliser adéquatement la librairie cobra et peut-être même viper
 import (
 	"os"
 	"fmt"
@@ -108,20 +108,7 @@ schemaCreateCmd := &cobra.Command{
 	  	    fmt.Println(err)
 					os.Exit(1)
   	    }
-		    schema=string(stdin)
-
-				success, err:= schemaService.Create(schema)
-	      if err !=nil {
-	  	    fmt.Println(err)
-	  	    os.Exit(1)
-  	    }
-			  output, err := json.MarshalIndent(success, "", "  ")
-        if err != nil {
-          fmt.Println(err)
-	  	    os.Exit(1)
-        }
-        fmt.Print(string(output))
-		 
+		    schema=string(stdin)		 
       }else if len(args) == 1 {
 		    buf, err:=os.ReadFile(args[0])
         if err != nil {
@@ -129,29 +116,87 @@ schemaCreateCmd := &cobra.Command{
 	  	    os.Exit(1)
         }
 	    	schema=string(buf)
- 				success, err:= schemaService.Create(schema)
-	      if err !=nil {
-	  	    fmt.Println(err)
-	  	    os.Exit(1)
-  	    }
-			  output, err := json.MarshalIndent(success, "", "  ")
-        if err != nil {
-          fmt.Println(err)
-	  	    os.Exit(1)
-        }
-        fmt.Print(string(output))
-   
       	} else {
 		    fmt.Println("Erreur: il y a trop d'arguments\n   spectruptiva schemat create [SCHEMA_FILE]")
 		    os.Exit(1)
     	}
+    	success, err:= schemaService.Create(schema)
+	    if err !=nil {
+	     fmt.Println(err)
+	     os.Exit(1)
+  	  }
+  	  output, err := json.MarshalIndent(success, "", "  ")
+      if err != nil {
+        fmt.Println(err)
+		    os.Exit(1)
+      }
+      fmt.Print(string(output))
     },
 }
 
-schemaCmd.AddCommand(schemaCreateCmd)
+schemaUpdateCmd := &cobra.Command{
+    Use: "update",
+    Short: "Modifier un schema existant",
+    Run: func(cmd *cobra.Command, args []string) {
+	    var (
+		    schema string
+	    )
+	    if len(args) == 1 { 
+	      stdin, err := io.ReadAll(os.Stdin)
+  	    if err != nil {
+	  	    fmt.Println(err)
+					os.Exit(1)
+  	    }
+		    schema=string(stdin)		 
+      }else if len(args) == 2 {
+		    buf, err:=os.ReadFile(args[1])
+        if err != nil {
+          fmt.Println(err)
+	  	    os.Exit(1)
+        }
+	    	schema=string(buf)
+      	} else {
+		    fmt.Println("Erreur: il y a trop d'arguments\n   spectruptiva schema update SCHEMA_ID [SCHEMA_FILE]")
+		    os.Exit(1)
+    	}
+    	success, err:= schemaService.Update(args[0],schema)
+	    if err !=nil {
+	     fmt.Println(err)
+	     os.Exit(1)
+  	  }
+  	  output, err := json.MarshalIndent(success, "", "  ")
+      if err != nil {
+        fmt.Println(err)
+		    os.Exit(1)
+      }
+      fmt.Print(string(output))
+    },
+}
+schemaListCmd := &cobra.Command{
+    Use: "list",
+    Short: "Afficher la liste des schemas existants",
+    Run: func(cmd *cobra.Command, args []string) {
+	    if len(args) > 0 { 
+		    fmt.Println("Erreur: il y a trop d'arguments\n   spectruptiva schema list")
+		    os.Exit(1)
+      }
+    	result, err:= schemaService.List()
+	    if err !=nil {
+	     fmt.Println(err)
+	     os.Exit(1)
+  	  }
+  	  output, err := json.MarshalIndent(result, "", "  ")
+      if err != nil {
+        fmt.Println(err)
+		    os.Exit(1)
+      }
+      fmt.Print(string(output))
+    },
+}
+
+schemaCmd.AddCommand(schemaCreateCmd,schemaUpdateCmd,schemaListCmd)
 rootCmd.AddCommand(validateCmd, schemaCmd)
 
-//	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 
