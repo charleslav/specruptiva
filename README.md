@@ -2,27 +2,60 @@
 
 Disruption par la specification. Ou outils de gestion centré sur les données.
 
-## Usage
+## Usage (développement)
+
+Pour afficher toutes les commandes de développement disponibles:
+
+```sh
+. setup  # rend les commandes specruptiva disponibles
+specruptiva --help
+```
+
+
 
 ### CLI 
 
-
 ```sh 
-# rend disponible la commande specruptiva
-export PATH=$PATH:$PWD/scripts
-
 # affiche l'aide
 specruptiva --help
 
 # devrait échouer (status code 1)
-specruptiva validate test/pets.cue test/charlie.yml
+specruptiva cli validate test/pets.cue test/charlie.yml
 
 # devrait réussir (status code 0)
-specruptiva validate test/pets.cue test/fido.yml
+specruptiva cli validate test/pets.cue test/fido.yml
 
 # à partir de stdin
-cat test/fido.yml | specruptiva validate  test/pets.cue
+cat test/fido.yml | specruptiva cli validate  test/pets.cue
+```
 
+### API pour persister les schémas
+
+```sh
+# Start API
+specruptiva start-api
+
+# créer schema
+specruptiva api-schema-create test/pets.cue
+
+# lister tous les schemas
+specruptiva api-schema-list
+
+# afficher un schema
+specruptiva api-schema-read 1
+
+# remplace un schema
+specruptiva api-schema-update 1 test/pets_v2.cue
+
+# supprime un schema
+specruptiva api-schema-delete 1
+```
+
+## Tests
+
+```sh
+specruptiva test-api
+specruptiva test-cli
 ```
 
 ## DevOps actions
@@ -38,14 +71,10 @@ cat test/fido.yml | specruptiva validate  test/pets.cue
 specruptiva release minor "Brève description du changement"
 ```
 
-### API pour persister les schémas
-
-#### Start API
+### Test
 
 ```sh
-cd /cmd/api
-go run .
+. setup
+# test l'api rest
+specruptiva test-api
 ```
-
-#### Documentation
-https://documenter.getpostman.com/view/16523457/2sB34kDyLS#89d5d5b6-f19b-4430-ae18-58c232a06381

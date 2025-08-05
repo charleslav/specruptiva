@@ -1,6 +1,10 @@
 .idea
-.db
+# dev artefacts
+*.db
+specruptiva.log
 
 # assets
 json.wasm
 wasm_exec.js
+
+

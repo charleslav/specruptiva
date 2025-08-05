@@ -14,6 +14,10 @@ specruptiva() (
     exit 1
   }
 
+  if [ "${SPECRUPTIVA_API_PORT:-}" = "" ]; then
+    export SPECRUPTIVA_API_PORT=9000
+  fi
+
   _get_root() {
     echo "$(readlink -f "$(dirname "$BASH_SOURCE")"/..)"
   }
@@ -28,13 +32,29 @@ specruptiva() (
       # forme générale
       specruptiva GLOBAL_OPTIONS COMMAND OPTIONS ARGS...
 
-      # cli
-      specruptiva validate SCHEMA_FILE DATA_FILE   # valide que le fichier de données
-                                                   #   est conforme au fichier schema
+      # cli 
+      specruptiva cli validate SCHEMA_FILE [DATA_FILE] # valide que le fichier de données
+      specruptiva cli list                             # affiche tous les schemas
+      specruptiva cli create SCHEMA_FILE               # ajoute un schema à partir d'un fichier
+      specruptiva cli read SCHEMA_ID                   # affiche le schema avec id SCHEMA_ID
+      specruptiva cli update SCHEMA_ID [DATA_FILE]     # remplace le schema avec id SCHEMA_ID 
+                                                       #   par celui dans le fichier SCHEMA_FILE
+      specruptiva api-schema-delete SCHEMA_ID          # supprime le schema avec id SCHEMA_ID
+
+
+      # (pseudo)cli sur api
+      specruptiva api-schema-list                        # affiche tous les schemas
+      specruptiva api-schema-create SCHEMA_FILE            # ajoute un schema à partir d'un fichier
+      specruptiva api-schema-read SCHEMA_ID               # affiche le schema avec id SCHEMA_ID
+      specruptiva api-schema-update SCHEMA_ID SCHEMA_FILE   # remplace le schema avec id SCHEMA_ID 
+                                                         #   par celui dans le fichier SCHEMA_FILE
+      specruptiva api-schema-delete SCHEMA_ID            # supprime le schema avec id SCHEMA_ID
+
 
       # devops
       specruptiva build-wasm 
-      specruptiva start-server
+      specruptiva start-web-server
+      specruptiva start-api
       specruptiva release (major|minor|patch) description
                                                   # incrémente la version et pousse sur le remote
 
@@ -46,7 +66,7 @@ EOM
 
   }
 
-  _validate() {
+  _cli() {
     ROOT=$(_get_root)
     go run $ROOT/cmd/cli/main.go ${@:-}
   }
@@ -58,11 +78,18 @@ EOM
     cp $(go env GOROOT)/lib/wasm/wasm_exec.js $ROOT/assets/.
   }
 
-  _startserver() {
+  _startwebserver() {
     _buildwasm
     ROOT=$(_get_root)
     go run $ROOT/cmd/server/main.go
   }
+
+  _startapi() {
+    _buildwasm
+    ROOT=$(_get_root)
+    go run $ROOT/cmd/api/main.go
+  }
+
   _new_version() {
     update_type=${1:-}
     latest=$(git tag | grep -E "^v([0-9]+\.([0-9]+))\.([0-9]+)$" | sort -r | head -n 1 | sed 's/^v//g')
@@ -107,14 +134,64 @@ EOM
   release)
     _release "${@:2}"
     ;;
-  validate | vet)
-    _validate ${@:2}
+  cli)
+    _cli ${@:2}
+    ;;
+  dev-clean)
+
+    rm -f $(_get_root)/data.db
     ;;
   build-wasm)
     _buildwasm
     ;;
-  start-server)
-    _startserver
+  start-web-server)
+    _startwebserver
+    ;;
+  start-api)
+    _startapi
+    ;;
+  test-api)
+    ROOT=$(_get_root)
+    specruptiva dev-clean
+    specruptiva start-api &
+    disown
+    specruptiva api-schema-create $ROOT/test/pets.cue
+    specruptiva api-schema-list
+    specruptiva api-schema-read 1
+    specruptiva api-schema-update 1 $ROOT/test/pets_v2.cue
+    specruptiva api-schema-delete 1
+    ps aux | grep start-api | grep -v grep | awk '{ print $2 }' | xargs -I % kill -9 %
+    specruptiva dev-clean
+    ;;
+  test-cli)
+    ROOT=$(_get_root)
+    specruptiva dev-clean
+    specruptiva cli schema create $ROOT/test/pets.cue
+    specruptiva cli schema list
+    specruptiva cli schema read 1
+    specruptiva cli schema update 1 $ROOT/test/pets_v2.cue
+    specruptiva cli schema delete 1
+    specruptiva dev-clean
+    ;;
+
+  api-schema-list)
+    curl -s -X GET http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas | jq .
+    ;;
+  api-schema-read)
+    curl -s -X GET http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2 | jq .
+    ;;
+  api-schema-create)
+    SCHEMA=$(cat $2)
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "schema": $schema }')
+    curl -s --header 'Content-Type: application/json' -X POST http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas -d "$DATA"
+    ;;
+  api-schema-update)
+    SCHEMA=$(cat $3)
+    DATA=$(jq -n --arg schema "$SCHEMA" '{ "schema": $schema }')
+    curl -s --header 'Content-Type: application/json' -X PUT http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2 -d "$DATA"
+    ;;
+  api-schema-delete)
+    curl -s --header 'Content-Type: application/json' -X DELETE http://localhost:$SPECRUPTIVA_API_PORT/api/v1/schemas/$2
     ;;
   *)
     _err "La commande '${1:-}' est inconnue"

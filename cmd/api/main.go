@@ -1,8 +1,10 @@
 package main
 
 import (
+	"disruptiva.org/specruptiva/pkg/core/service"
+	"disruptiva.org/specruptiva/adapters/sqlite"
+	"disruptiva.org/specruptiva/adapters/http"
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 // Cors is the additional header on every request to server
@@ -14,6 +16,17 @@ func Cors() gin.HandlerFunc {
 }
 
 func main() {
+
+  var config = sqlite.SqliteConfig{
+		DbFile: "./data.db",   // todo: retrieve from env var
+		LogMode: true,
+	 }
+  var port = "9000"        // todo: retrieve from env var
+
+	var schemaStore = sqlite.NewSchemaStore(config)
+	var schemaService = service.NewSchemaService(schemaStore)
+	var schemaHandler = http.NewSchemaHandler(*schemaService)
+
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
@@ -21,12 +34,12 @@ func main() {
 
 	v1 := r.Group("api/v1")
 	{
-		v1.POST("/schemas", PostSchema)
-		v1.GET("/schemas", GetSchemas)
-		v1.GET("/schemas/:id", GetSchema)
-		v1.PUT("/schemas/:id", UpdateSchema)
-		v1.DELETE("/schemas/:id", DeleteSchema)
+		v1.POST("/schemas", schemaHandler.Create)
+		v1.GET("/schemas", schemaHandler.List)
+		v1.GET("/schemas/:id", schemaHandler.Read)
+		v1.PUT("/schemas/:id", schemaHandler.Update)
+		v1.DELETE("/schemas/:id", schemaHandler.Delete)
 	}
 
-	r.Run(":8080")
+	r.Run(":" + port)
 }
