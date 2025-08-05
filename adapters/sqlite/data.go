@@ -9,11 +9,6 @@ import (
 	"strconv"
 )
 
-type SqliteConfig struct {
-	LogMode bool
-	DbFile  string
-}
-
 type GormData struct {
 	Id   int    `gorm:"primary_key;AUTO_INCREMENT"`
 	Data string `gorm:"not null"`
@@ -22,15 +17,6 @@ type GormData struct {
 type DataStore struct {
 	db     *gorm.DB
 	config SqliteConfig
-}
-
-func InitDb(config SqliteConfig) *gorm.DB {
-	db, err := gorm.Open("sqlite3", config.DbFile)
-	if err != nil {
-		panic(err)
-	}
-	db.LogMode(config.LogMode)
-	return db
 }
 
 func NewDataStore(config SqliteConfig) (ports.DataStore, error) {
