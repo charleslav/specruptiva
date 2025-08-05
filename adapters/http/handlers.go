@@ -29,7 +29,6 @@ func NewDataHandler(service service.DataService) *DataHandler {
 	return &DataHandler{service: service}
 }
 
-// SchemaHandler methods
 func (h *SchemaHandler) Create(c *gin.Context) {
 	var inSchema inputSchema
 	c.Bind(&inSchema)
@@ -92,7 +91,6 @@ func (h *SchemaHandler) Delete(c *gin.Context) {
 	}
 }
 
-// DataHandler methods (these were missing!)
 func (h *DataHandler) Create(c *gin.Context) {
 	var inData inputData
 	c.Bind(&inData)
