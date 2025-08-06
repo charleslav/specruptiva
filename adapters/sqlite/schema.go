@@ -1,164 +1,115 @@
 package sqlite
 
-import ( 
-	"strconv"
-	"errors"
-	"disruptiva.org/specruptiva/pkg/core/port"
+import (
 	"disruptiva.org/specruptiva/pkg/core/domain"
-  "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/sqlite"
+	"disruptiva.org/specruptiva/pkg/core/port"
+	"errors"
+	"github.com/jinzhu/gorm"
+	"strconv"
 )
 
-type SqliteConfig struct {
-	LogMode bool
-	DbFile string
-}
-
-
-func InitDb(config SqliteConfig) *gorm.DB {
-	// Openning file
-	db, err := gorm.Open("sqlite3", config.DbFile)
-	// Display SQL queries
-	db.LogMode(config.LogMode)
-
-	// Error
-	if err != nil {
-		panic(err)
-	}
-	// Creating the table
-	if !db.HasTable(&GormSchema{}) {
-		db.CreateTable(&GormSchema{})
-		db.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&GormSchema{})
-	}
-
-	return db
-}
-
 type GormSchema struct {
-	Id  int  `gorm:"AUTO_INCREMENT" form:"id" json:"id"`
-	Schema string `gorm:"no null" form:"schema" json:"schema"`
+	Id     int    `gorm:"primary_key;AUTO_INCREMENT" form:"id" json:"id"`
+	Schema string `gorm:"not null" form:"schema" json:"schema"`
 }
 
-type SqliteStore struct {
-	db *gorm.DB
+type SchemaStore struct {
+	db     *gorm.DB
 	config SqliteConfig
 }
 
-func NewSchemaStore (config SqliteConfig) ports.SchemaStore {
-	return &SqliteStore{config: config}
+func NewSchemaStore(config SqliteConfig) (ports.SchemaStore, error) {
+	db := InitDb(config)
+	db.AutoMigrate(&GormSchema{})
+	return &SchemaStore{db: db, config: config}, nil
 }
 
-func (s* SqliteStore)List()(domain.Schemas, error){
-
-	db := InitDb(s.config)
-
-	defer db.Close()
-
+func (s *SchemaStore) List() (domain.Schemas, error) {
 	var schemas []GormSchema
-	db.Find(&schemas)
+	if err := s.db.Find(&schemas).Error; err != nil {
+		return nil, err
+	}
 
-	var outschema = domain.Schemas{}
-
-	// casting ...
-	for _, value := range schemas {
-		outschema = append(outschema, domain.Schema{
-			Id: strconv.Itoa(value.Id),
-		  Schema: value.Schema,
+	out := make(domain.Schemas, 0, len(schemas))
+	for _, schema := range schemas {
+		out = append(out, domain.Schema{
+			Id:     strconv.Itoa(schema.Id),
+			Schema: schema.Schema,
 		})
 	}
-
-	return outschema, nil
+	return out, nil
 }
 
-func (s* SqliteStore)Create(schema string)(domain.Success, error){
-
-	db := InitDb(s.config)
-	defer db.Close()
-
-
-	if schema != "" {
-		gormSchema:= GormSchema{Schema: schema,}
-		result:= db.Create(&gormSchema)
-    if result.Error != nil {
-			return domain.Success{}, result.Error
-		}
-		return domain.Success{
-			Id:  strconv.Itoa(gormSchema.Id),
-			Message: "schema created",
-		  }, nil
-		}
-	return domain.Success{}, errors.New("Fields are empty")
-}
-
-func (s* SqliteStore)Read(id string)(domain.Schema, error){
-  db := InitDb(s.config)
-	defer db.Close()
-
-	var schema GormSchema
-
-	db.First(&schema, id)
-
-	if schema.Id != 0 {
-		return domain.Schema{
-			Id:  strconv.Itoa(schema.Id),
-			Schema: schema.Schema,
-		}, nil
+func (s *SchemaStore) Create(schema string) (domain.Success, error) {
+	if schema == "" {
+		return domain.Success{}, errors.New("schema field is empty")
 	}
-	return domain.Schema{}, nil
-}
-func (s* SqliteStore)Update(id string, schema string)(domain.Success, error){
 
-	db := InitDb(s.config)
-	defer db.Close()
+	gs := GormSchema{Schema: schema}
+	if err := s.db.Create(&gs).Error; err != nil {
+		return domain.Success{}, err
+	}
+
+	return domain.Success{
+		Id:      strconv.Itoa(gs.Id),
+		Message: "schema created",
+	}, nil
+}
+
+func (s *SchemaStore) Read(id string) (domain.Schema, error) {
+	var schema GormSchema
+	if err := s.db.First(&schema, id).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return domain.Schema{}, errors.New("schema not found")
+		}
+		return domain.Schema{}, err
+	}
+
+	return domain.Schema{
+		Id:     strconv.Itoa(schema.Id),
+		Schema: schema.Schema,
+	}, nil
+}
+
+func (s *SchemaStore) Update(id string, schema string) (domain.Success, error) {
+	if schema == "" {
+		return domain.Success{}, errors.New("schema field is empty")
+	}
 
 	var gormSchema GormSchema
-	result:= db.First(&gormSchema, id)
-  if result.Error != nil {
-		return domain.Success{}, result.Error
+	if err := s.db.First(&gormSchema, id).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return domain.Success{}, errors.New("schema not found")
+		}
+		return domain.Success{}, err
 	}
 
-	if gormSchema.Id != 0 {
+	gormSchema.Schema = schema
+	if err := s.db.Save(&gormSchema).Error; err != nil {
+		return domain.Success{}, err
+	}
 
-		idi, err:= strconv.Atoi(id)
-		if err != nil {
-			return domain.Success{}, err
-		}
-		newGormSchema := GormSchema{
-			Id:     idi, 
-			Schema: schema,
-		}
-
-		result:= db.Save(&newGormSchema)
-    if result.Error != nil {
-		  return domain.Success{}, result.Error
-  	}
-		  return domain.Success{
-				Id: id,
-				Message: "schema updated",
-			}, nil
-		} else {
-			return domain.Success{}, nil // todo: comportement ambigue... revoir ça
-		}
-
+	return domain.Success{
+		Id:      id,
+		Message: "schema updated",
+	}, nil
 }
-func (s* SqliteStore)Delete(id string)(domain.Success, error){
-	db := InitDb(s.config)
-	defer db.Close()
 
+func (s *SchemaStore) Delete(id string) (domain.Success, error) {
 	var schema GormSchema
-	result := db.First(&schema, id)
-  if result.Error != nil {
-		return domain.Success{}, nil // todo: retourner ce message (result.Error.Error())
- 	}
-	if schema.Id != 0 {  
-		result:= db.Delete(&schema) 
-    if result.Error != nil {
-	    return domain.Success{}, result.Error
- 	  }
-		return domain.Success{
-			Id: strconv.Itoa(schema.Id),
-			Message: "schema deleted",
-		},nil
+	if err := s.db.First(&schema, id).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return domain.Success{}, errors.New("schema not found")
+		}
+		return domain.Success{}, err
 	}
-	return domain.Success{}, nil
+
+	if err := s.db.Delete(&schema).Error; err != nil {
+		return domain.Success{}, err
+	}
+
+	return domain.Success{
+		Id:      strconv.Itoa(schema.Id),
+		Message: "schema deleted",
+	}, nil
 }
