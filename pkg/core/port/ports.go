@@ -20,7 +20,7 @@ type DataStore interface {
 
 type SchemaStore interface {
 	List() (domain.Schemas, error)
-	Create(schema string) (domain.Success, error)
+	Create(schema string, apiVersion string, kind string) (domain.Success, error)
 	Read(id string) (domain.Schema, error)
 	Update(id string, schema string) (domain.Success, error)
 	Delete(id string) (domain.Success, error)

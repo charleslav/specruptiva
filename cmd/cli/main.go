@@ -119,7 +119,8 @@ func init() {
 				fmt.Println("Erreur: il y a trop d'arguments\n   spectruptiva schemat create [SCHEMA_FILE]")
 				os.Exit(1)
 			}
-			success, err := schemaService.Create(schema)
+			//ApiVersion et Kind à ajouter
+			success, err := schemaService.Create(schema, "", "")
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)

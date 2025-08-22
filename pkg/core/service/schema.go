@@ -25,13 +25,13 @@ func(s *SchemaService) List() (domain.Schemas, error) {
 	return s.store.List()
 }
 
-func(s *SchemaService) Create(schema string) (domain.Success, error) { 
-  return s.store.Create(schema)
+func(s *SchemaService) Create(schema string, apiVersion string, kind string) (domain.Success, error) {
+  return s.store.Create(schema, apiVersion, kind)
 }
-func(s *SchemaService) Read(id string) (domain.Schema, error) { 
-	return s.store.Read(id)
+func(s *SchemaService) Read(id string) (domain.Schema, error) {
+  return s.store.Read(id)
 }
-func(s *SchemaService) Update(id string, schema string) (domain.Success, error) { 
+func(s *SchemaService) Update(id string, schema string) (domain.Success, error) {
   return s.store.Update(id, schema)
 }
 func(s *SchemaService) Delete(id string) (domain.Success, error) {

@@ -9,13 +9,37 @@ import (
 )
 
 type GormSchema struct {
-	Id     int    `gorm:"primary_key;AUTO_INCREMENT" form:"id" json:"id"`
-	Schema string `gorm:"not null" form:"schema" json:"schema"`
+	Id         int    `gorm:"primary_key;AUTO_INCREMENT" form:"id" json:"id"`
+	Schema     string `gorm:"not null" form:"schema" json:"schema"`
+	ApiVersion string `gorm:"not null" form:"apiVersion" json:"apiVersion"`
+	Kind       string `gorm:"not null" form:"kind" json:"kind"`
 }
 
 type SchemaStore struct {
 	db     *gorm.DB
 	config SqliteConfig
+}
+
+func (s *SchemaStore) Create(schema string, apiVersion string, kind string) (domain.Success, error) {
+	if schema == "" {
+		return domain.Success{}, errors.New("schema field is empty")
+	}
+	if apiVersion == "" {
+		return domain.Success{}, errors.New("apiVersion field is empty")
+	}
+	if kind == "" {
+		return domain.Success{}, errors.New("kind field is empty")
+	}
+
+	gs := GormSchema{Schema: schema, ApiVersion: apiVersion, Kind: kind}
+	if err := s.db.Create(&gs).Error; err != nil {
+		return domain.Success{}, err
+	}
+
+	return domain.Success{
+		Id:      strconv.Itoa(gs.Id),
+		Message: "schema created",
+	}, nil
 }
 
 func NewSchemaStore(config SqliteConfig) (ports.SchemaStore, error) {
@@ -33,27 +57,13 @@ func (s *SchemaStore) List() (domain.Schemas, error) {
 	out := make(domain.Schemas, 0, len(schemas))
 	for _, schema := range schemas {
 		out = append(out, domain.Schema{
-			Id:     strconv.Itoa(schema.Id),
-			Schema: schema.Schema,
+			Id:         strconv.Itoa(schema.Id),
+			Schema:     schema.Schema,
+			ApiVersion: schema.ApiVersion,
+			Kind:       schema.Kind,
 		})
 	}
 	return out, nil
-}
-
-func (s *SchemaStore) Create(schema string) (domain.Success, error) {
-	if schema == "" {
-		return domain.Success{}, errors.New("schema field is empty")
-	}
-
-	gs := GormSchema{Schema: schema}
-	if err := s.db.Create(&gs).Error; err != nil {
-		return domain.Success{}, err
-	}
-
-	return domain.Success{
-		Id:      strconv.Itoa(gs.Id),
-		Message: "schema created",
-	}, nil
 }
 
 func (s *SchemaStore) Read(id string) (domain.Schema, error) {
@@ -66,8 +76,10 @@ func (s *SchemaStore) Read(id string) (domain.Schema, error) {
 	}
 
 	return domain.Schema{
-		Id:     strconv.Itoa(schema.Id),
-		Schema: schema.Schema,
+		Id:         strconv.Itoa(schema.Id),
+		Schema:     schema.Schema,
+		ApiVersion: schema.ApiVersion,
+		Kind:       schema.Kind,
 	}, nil
 }
 

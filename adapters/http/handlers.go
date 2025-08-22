@@ -6,7 +6,9 @@ import (
 )
 
 type inputSchema struct {
-	Schema string `form:"schema" json:"schema"`
+	Schema     string `form:"schema" json:"schema"`
+	ApiVersion string `form:"apiVersion" json:"apiVersion"`
+	Kind       string `form:"kind" json:"kind"`
 }
 
 type inputData struct {
@@ -32,7 +34,7 @@ func NewDataHandler(service service.DataService) *DataHandler {
 func (h *SchemaHandler) Create(c *gin.Context) {
 	var inSchema inputSchema
 	c.Bind(&inSchema)
-	success, err := h.service.Create(inSchema.Schema)
+	success, err := h.service.Create(inSchema.Schema, inSchema.ApiVersion, inSchema.Kind)
 	if err == nil {
 		c.JSON(201, success)
 	} else {
